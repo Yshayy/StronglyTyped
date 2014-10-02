@@ -30,50 +30,50 @@ namespace CaseClass
         void Validate();
     }
 
-    public class Typed<U, T> : Value<T>, IValidator<T> where U : Value<T>, IValidator<T>, new()
+    public class Typed<TName, TValue> : Value<TValue>, IValidator<TValue> where TName : Value<TValue>, IValidator<TValue>, new()
     {
-        private List<Action<T>> mGuards = new List<Action<T>>();
+        private List<Action<TValue>> mGuards = new List<Action<TValue>>();
 
         public Typed(){      
         }
-        public Typed(T value) : base(value){
+        public Typed(TValue value) : base(value){
         }
 
-        protected internal Typed<U, T> Guard(Predicate<T> guard)
+        protected internal Typed<TName, TValue> Guard(Predicate<TValue> guard)
         {
             return Guard((x)=> {
-                if(!guard(x)) throw new InvalidOperationException(string.Format("Invalid data for type {0}:{1}", typeof(U), mValue));
+                if(!guard(x)) throw new InvalidOperationException(string.Format("Invalid data for type {0}:{1}", typeof(TName), mValue));
             });
             
         }
 
-        protected Typed<U, T> Guard(Action<T> @try)
+        protected Typed<TName, TValue> Guard(Action<TValue> @try)
         {
             mGuards.Add(@try);
             return this;
         }
 
-        public static implicit operator U(Typed<U, T> value)
+        public static implicit operator TName(Typed<TName, TValue> value)
         {
             return Of(value.mValue);
         }
 
-        public static U operator |(Typed<U, T> value, Func<T,T> transform)
+        public static TName operator |(Typed<TName, TValue> value, Func<TValue,TValue> transform)
         {
             return Of(transform(value.mValue));
         }
 
-        public static implicit operator Typed<U, T>(T value)
+        public static implicit operator Typed<TName, TValue>(TValue value)
         {
-            return new Typed<U, T>(value);
+            return new Typed<TName, TValue>(value);
         }
-        public static U Of(T value)
+        public static TName Of(TValue value)
         {
-            var u =  new U() { mValue = value };
+            var u =  new TName() { mValue = value };
             u.Validate();
             return u;
         }
-        void IValidator<T>.Validate()
+        void IValidator<TValue>.Validate()
         {
             foreach (var guard in mGuards) guard(mValue);
         }
